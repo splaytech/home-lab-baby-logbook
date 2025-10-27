@@ -9,8 +9,8 @@ WORKDIR /app/frontend
 # Copy frontend package files
 COPY frontend/package*.json ./
 
-# Install frontend dependencies
-RUN npm ci --only=production
+# Install ALL frontend dependencies (needed for build)
+RUN npm ci
 
 # Copy frontend source
 COPY frontend/ ./
@@ -39,12 +39,18 @@ FROM node:20-alpine
 RUN apk add --no-cache nginx
 
 # Create app user for security
-RUN addgroup -g 1000 appuser && \
-    adduser -D -u 1000 -G appuser appuser
+# Use alternative GID/UID if 1000 is already taken
+RUN (addgroup -g 1000 appuser 2>/dev/null || addgroup appuser) && \
+    (adduser -D -u 1000 -G appuser appuser 2>/dev/null || adduser -D -G appuser appuser)
 
-# Create necessary directories
-RUN mkdir -p /app/backend /app/frontend/dist /data /backups /config /var/log/nginx /run/nginx && \
-    chown -R appuser:appuser /app /data /backups /config /var/log/nginx /run/nginx
+# Create necessary directories with proper permissions for nginx
+RUN mkdir -p /app/backend /app/frontend/dist /data /backups /config \
+    /var/log/nginx /run/nginx /var/lib/nginx /var/lib/nginx/tmp \
+    /var/lib/nginx/tmp/client_body /var/lib/nginx/tmp/proxy \
+    /var/lib/nginx/tmp/fastcgi /var/lib/nginx/tmp/uwsgi \
+    /var/lib/nginx/tmp/scgi && \
+    chown -R appuser:appuser /app /data /backups /config \
+    /var/log/nginx /run/nginx /var/lib/nginx
 
 WORKDIR /app
 
@@ -66,7 +72,7 @@ EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3000/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
+    CMD node -e "require('http').get('http://localhost:3001/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
 
 # Create startup script
 RUN echo '#!/bin/sh' > /app/start.sh && \
