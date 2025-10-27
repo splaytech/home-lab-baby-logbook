@@ -82,8 +82,8 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     chmod +x /app/start.sh && \
     chown appuser:appuser /app/start.sh
 
-# Switch to non-root user
-USER appuser
+# Optional: Switch to non-root user
+# USER appuser
 
 # Start both nginx and node
 CMD ["/app/start.sh"]
