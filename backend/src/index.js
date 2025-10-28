@@ -104,16 +104,19 @@ const startServer = async () => {
     await db.authenticate();
     logger.info('Database connection established successfully');
 
-    // Sync database (in development)
-    if (process.env.NODE_ENV !== 'production') {
-      await db.sync({ force: true });
-      logger.info('Database synchronized');
+    // Sync database
+    // Use force: true in development, alter: true in production
+    const syncOptions = process.env.NODE_ENV === 'production'
+      ? { alter: true }
+      : { force: true };
 
-      // Seed vaccination schedule
-      const { VaccinationSchedule } = require('./models');
-      await VaccinationSchedule.seedSchedule();
-      logger.info('Vaccination schedule seeded');
-    }
+    await db.sync(syncOptions);
+    logger.info('Database synchronized');
+
+    // Seed vaccination schedule
+    const { VaccinationSchedule } = require('./models');
+    await VaccinationSchedule.seedSchedule();
+    logger.info('Vaccination schedule seeded');
 
     // Start server
     app.listen(PORT, () => {
