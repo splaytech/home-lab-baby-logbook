@@ -28,7 +28,7 @@ FROM node:20-alpine
 RUN apk add --no-cache nginx bash
 
 # Create non-root user
-RUN addgroup -g 1000 appuser && adduser -D -u 1000 -G appuser appuser
+# RUN addgroup -g 1000 appuser && adduser -D -u 1000 -G appuser appuser
 
 # Prepare directories and fix permissions
 RUN mkdir -p \

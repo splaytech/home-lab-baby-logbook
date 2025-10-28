@@ -26,9 +26,9 @@ services:
       - SMTP_FROM=${SMTP_FROM:-}
 
     volumes:
-      - ./data:/data
-      - ./backups:/backups
-      - ./config:/config
+      - data:/data
+      - backups:/backups
+      - config:/config
 
     restart: unless-stopped
 
