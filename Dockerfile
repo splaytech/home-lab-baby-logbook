@@ -27,11 +27,10 @@ FROM node:20-alpine
 # Install nginx and bash (for startup scripting)
 RUN apk add --no-cache nginx bash
 
-# Create non-root user
-# RUN addgroup -g 1000 appuser && adduser -D -u 1000 -G appuser appuser
-
-# Prepare directories and fix permissions
-RUN mkdir -p \
+# Create non-root user, directories, and set permissions in a single layer
+RUN (addgroup -g 1000 appuser 2>/dev/null || addgroup appuser) && \
+    (adduser -D -u 1000 -G appuser appuser 2>/dev/null || adduser -D -G appuser appuser) && \
+    mkdir -p \
       /app/backend \
       /app/frontend/dist \
       /data \
@@ -43,8 +42,8 @@ RUN mkdir -p \
       /var/lib/nginx/tmp/proxy \
       /var/lib/nginx/tmp/fastcgi \
       /var/lib/nginx/tmp/uwsgi \
-      /var/lib/nginx/tmp/scgi \
-  && chown -R appuser:appuser /app /data /backups /config /var/log/nginx /run/nginx /var/lib/nginx
+      /var/lib/nginx/tmp/scgi && \
+    chown -R appuser:appuser /app /data /backups /config /var/log/nginx /run/nginx /var/lib/nginx
 
 WORKDIR /app
 
